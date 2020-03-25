@@ -202,6 +202,34 @@ index=c(1,3,2)
 [3,]    6    8    7
 ```
 
+## 向量的组合
+
+python在进行向量和矩阵组合时需要用，np.hstack((vec1,vec2,...)), np.vstack((vec1,vec2,...))
+
+```python
+#python
+import numpy as np
+vec=np.arange(5)
+vec2=np.hstack((2,vec))
+>>>vec
+array([0, 1, 2, 3, 4])
+>>>vec2
+array([2, 0, 1, 2, 3, 4])
+
+```
+
+
+
+```R
+#R
+vec=seq(0,4)
+vec2=c(2,vec)
+> vec
+[1] 0 1 2 3 4
+> vec2
+[1] 2 0 1 2 3 4
+```
+
 
 
 ## 集合运算
@@ -209,15 +237,216 @@ index=c(1,3,2)
 python中使用set（集合）的相关方法也可以判断集合关系：
 
 1. s1.isdisjoint(s2)    #若s1, s2之间没有相同元素返回True， 否则返回false
-
 2. s1.issubset(s2)      #判断s1是不是s2的子集
-
 3. s1.issuperset(s2)   #判断s1是不是s2的超集
-
 4. s1.union(s2,...)        #返回s1, s2,....的并集
-
 5. s1.intersection(s2,...)  #返回交集
-
 6. s1.difference(s2,...)      #返回差集
-
 7. s1.symmetric_difference(s2)    #返回对称差集
+
+# 删除变量
+
+```python
+#python
+# 删除全部用户自定义变量
+import re
+for x in dir():
+    if not re.match('^__',x) and x!="re":
+        exec(" ".join(("del",x)))
+```
+
+
+
+```R
+#R,删除全部用户自定义变量
+rm(ls())
+```
+
+
+
+# 同时做多根不同类别的曲线
+
+## python中利用pandas+matplotlib
+
+```python
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+X=np.mat(range(1,21)).reshape(4,5).T
+#python中矩阵的排列按行
+df=pd.DataFrame(X,index=range(1,6),columns=("a","b","c","d"))
+df.plot(style ='--', alpha=0.5, subplots = False,layout=(2, 3),figsize=(8,6))
+plt.show()
+```
+
+<img src="E:\sourcetree\python-vs-R\image-20200207130450435.png" alt="image-20200207130450435" style="zoom:50%;" />
+
+## R中利用graphics包
+
+```R
+#利用graphics
+library(graphics)
+x=1:5
+y=matrix(1:20,ncol = 4,nrow=5)
+#y是数据框也可以
+matplot(x, y, type = "b", lty = 1:4, lwd = 1, pch = c('a','b','c','d'),
+        col = 1:6,xlab = 'xxx', ylab = 'yy')
+#每一列就是一根曲线，同类函数还有
+matpoints(x, y+1, type = "p", lty = 1:5, lwd = 1, pch = NULL,
+          col = 1:6, xlab = 'xxx', ylab = 'yy')
+matlines (x, y-1, type = "l", lty = 1:5, lwd = 1, pch = NULL,
+          col = 1:6, xlab = 'xxx', ylab = 'yy')
+```
+
+结果如下：
+
+<img src="E:\sourcetree\python-vs-R\image-20200207114240707.png" alt="image-20200207114240707" style="zoom:50%;" />
+
+## R中利用ggplot包
+
+```R
+#利用ggpolot
+library(ggplot2)
+library(reshape2)
+x=1:5
+y=data.frame(matrix(1:20,ncol = 4,nrow=5))
+names(y)=c("a","b","c","d")
+y=cbind(y,x)
+
+mydata=melt(y,id.vars ='x' ,variable.name = "var",value.name = "value")
+
+ggplot(data=mydata,aes(x=x,y=value))+geom_line(aes(col=var))+
+  geom_point(aes(pch=var))+theme_test()
+```
+
+<img src="E:\sourcetree\python-vs-R\image-20200207114858418.png" style="zoom:50%;" />
+
+# 数据框
+
+## 获取列的名字
+
+```python
+#python
+import pandas as pd
+
+df.columns
+```
+
+```R
+#R
+names(df)
+```
+
+
+
+## 给数据框添加新列，删除列
+
+```python
+import pandas as pd
+b=pd.DataFrame({'x':[1,2,5,4]})
+b
+Out[62]: 
+   x
+0  1
+1  2
+2  5
+3  4
+# 添加新列
+b['y']=10
+b
+Out[64]: 
+   x   y
+0  1  10
+1  2  10
+2  5  10
+3  4  10
+
+b['x']=[8,5,6,2]
+b
+Out[79]: 
+    y  x
+0  10  8
+1  10  5
+2  10  6
+3  10  2
+
+#进行部分赋值
+b.iloc[0:2,0]=[1,9]
+b
+Out[37]: 
+    x  y
+0   1  1
+1   9  2
+2  10  5
+3  10  4
+
+
+#删除列
+del b['x']
+b
+Out[71]: 
+    y
+0  10
+1  10
+2  10
+3  10
+```
+
+# 对于行或列的处理
+
+```python
+#python
+import pandas as pd
+df=pd.DataFrame({'x':[1,2,3],'y':[1,5,9]})
+#默认对变量进行处理，等价于df.sum(axis=0)（即对纵向方向进行加和）
+df.sum()
+# x     6
+# y    15
+# dtype: int64
+
+df.sum(axis=1)#对横向方向进行加和
+# 0     2
+# 1     7
+# 2    12
+# dtype: int64
+
+
+
+import numpy as np
+ar=np.array([[1,2,3],[4,5,6]])
+#进行全求和
+ar.sum()
+# 21
+
+#对纵向进行操作
+ar.sum(axis=0)
+# ar.sum(axis=0)
+# array([5, 7, 9])
+
+#对横向进行操作
+ar.sum(axis=1)
+# array([6, 15])
+```
+
+```r
+#R
+
+df=data.frame(x=1:3,y=c(1,5,9))
+#对数据全求和
+sum(df)
+# 21
+
+rowSums(df)
+# [1]  2  7 12
+
+colSums(df)
+#x  y 
+# 6 15 
+
+#利用purrr::map_dfr输出结果还是一个dataframe
+purrr::map_dfr(df,sum)
+# A tibble: 1 x 2
+# x     y
+# <int> <dbl>
+#   1     6    15
+```
